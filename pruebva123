@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestra Historia - Feliz Aniversario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Garamond:wght@400;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos Generales */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #0c0c1a;
+            font-family: 'Garamond', serif; color: #e0e0e0;
+        }
+        .hidden { display: none !important; }
+
+        /* Contenedores de Pantalla Completa */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+            opacity: 0; visibility: hidden;
+            transition: opacity 1.5s ease-in-out;
+            box-sizing: border-box;
+            background-color: #0c0c1a;
+        }
+        .screen.visible { opacity: 1; visibility: visible; z-index: 10; }
+        .screen.on-top { z-index: 100; }
+
+        /* Cuenta Regresiva - Estilo con cajas */
+        #countdown-screen { background-color: #0c0c1a; }
+        #countdown-container {
+            display: flex;
+            gap: 15px;
+            position: relative;
+            z-index: 10;
+        }
+        .countdown-box {
+            background: rgba(20, 20, 35, 0.8);
+            border: 2px solid #c0a062;
+            border-radius: 15px;
+            padding: 20px 25px;
+            min-width: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .countdown-number {
+            font-family: 'Dancing Script', cursive;
+            font-size: 4em;
+            color: #c0a062;
+            text-shadow: 0 0 20px rgba(192, 160, 98, 0.5);
+            line-height: 1;
+        }
+        .countdown-label {
+            font-size: 1em;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #countdown-config {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.7em;
+            color: #444;
+            opacity: 0.5;
+        }
+
+        /* Pantalla de Inicio */
+        #start-screen h1 {
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            color: #c0a062;
+            font-size: 6em;
+            margin: 0;
+            text-shadow: 0 0 30px rgba(192, 160, 98, 0.6);
+        }
+        #start-screen p {
+            font-size: 1.5em;
+            margin-top: 20px;
+            color: #e0e0e0;
+        }
+
+        /* Reproductor de Música Estilo Spotify */
+        #music-player {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #c0a062;
+            border-radius: 25px;
+            padding: 8px 15px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 200;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+        }
+        #music-player:hover { opacity: 1; }
+        #music-player .play-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #c0a062;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        #music-player .song-info {
+            color: #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        /* Navegación por Mundos/Estrellas */
+        #universe-screen { background-color: #0c0c1a; }
+        .world {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            animation: float 6s ease-in-out infinite;
+        }
+        .world:hover {
+            transform: scale(1.25) translate(-50%, -50%);
+        }
+        .world-label {
+            position: absolute;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .world:hover .world-label { opacity: 1; }
+        .world-icon {
+            font-size: 2.5em;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-10px); }
+        }
+
+        /* Botón de Volver */
+        .back-button {
+            position: absolute; top: 20px; left: 20px;
+            font-size: 1.2em; color: #c0a062;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px; border: 1px solid #c0a062;
+            cursor: pointer; z-index: 110; transition: all 0.3s ease;
+        }
+        .back-button:hover { background-color: #c0a062; color: #1a1a1a; }
+
+        /* Sección Constelación */
+        #constellation-screen { background-color: #0c0c1a; }
+        #constellation-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #constellation-svg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 15;
+        }
+        .star {
+            fill: #FFF; opacity: 0;
+            transition: opacity 1s ease-in-out;
+            filter: drop-shadow(0 0 7px #FFF) drop-shadow(0 0 12px #FFF);
+        }
+        .star.visible { opacity: 1; animation: twinkle 3s infinite ease-in-out alternate; }
+        .background-star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle-bg 5s infinite ease-in-out alternate;
+        }
+        .constellation-line {
+            stroke: rgba(255, 215, 0, 0.6);
+            stroke-width: 2px;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease-out forwards;
+        }
+        #memory-caption {
+            position: relative; z-index: 20;
+            font-family: 'Dancing Script', cursive; font-size: 4em;
+            color: #e0e0e0; text-shadow: 2px 2px 10px #000;
+            opacity: 0; transition: opacity 1s ease-in-out;
+            padding: 20px;
+        }
+        #memory-caption.visible { opacity: 1; }
+
+        /* Sección Mensaje */
+        #message-screen { padding: 5%; }
+        #letter {
+            font-size: 1.8em; line-height: 1.6; max-width: 800px;
+            text-align: left; white-space: pre-wrap;
+            border-left: 3px solid #c0a062; padding-left: 20px;
+        }
+
+        /* Sección Viaje al Parque del Café */
+        #trip-screen { background: linear-gradient(135deg, #0c0c1a 0%, #1a1a2e 100%); }
+        .ticket-container {
+            background: linear-gradient(145deg, rgba(192, 160, 98, 0.1), rgba(192, 160, 98, 0.05));
+            border: 3px solid #c0a062;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ticket-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(192, 160, 98, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .ticket-header {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5em;
+            color: #c0a062;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(192, 160, 98, 0.5);
+        }
+        .ticket-content {
+            position: relative;
+            z-index: 1;
+        }
+        .trip-emoji {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+        .trip-details {
+            font-size: 1.3em;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin: 20px 0;
+        }
+        .trip-highlight {
+            color: #c0a062;
+            font-weight: bold;
+        }
+
+        /* Sección Cortometraje */
+        .film-roll-container {
+            width: auto; height: auto;
+            padding: 0 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        #shortfilm-container {
+            width: 80vw; max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            border-radius: 4px;
+            box-shadow: inset 0 0 15px 5px rgba(0,0,0,0.85);
+        }
+        .film-roll-container::before,
+        .film-roll-container::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 25px;
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent, transparent 5px,
+                #222 5px, #222 15px,
+                transparent 15px, transparent 20px
+            );
+            background-size: 100% 25px;
+        }
+        .film-roll-container::before { left: 0; }
+        .film-roll-container::after { right: 0; }
+        #shortfilm-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABVQTFRFAAAAAAAA/////////////////////w+z0QAAAAd0Uk5T////////ABpLAgEAAACZSURBVDjLzZFLCsQgCEW9/4/tC4lQgmwQ9s4sY1zKDDkXl5YkABJ+fId3u3ZpkpkkS1KUXCRpE3EK2KbYw1gD9wY8bxiKqMyRj9vCK2b0gK5sKMFrb3pae5o1B5dGvXm1wJ8A0gOg5QKIDoBqAagLQA0AdQGoEdAGAJuA9AZw6wB9wHEG8gEAmwB9ADm8gH4A3oD8BBAA9wP0B2o7gQswADlGzBvKPfgLAAAAAElFTkSuQmCC');
+            opacity: 0.1;
+            animation: film-grain 0.3s steps(1) infinite;
+            pointer-events: none;
+            z-index: 3;
+        }
+        .shortfilm-slide {
+            position: absolute; width: 100%; height: 100%;
+            background-size: cover; background-position: center center;
+            opacity: 0;
+            transform: scale(1.05);
+            transition: opacity 2s ease-in-out;
+            filter: sepia(0.5) contrast(1.05) brightness(0.95);
+        }
+        .shortfilm-slide.visible {
+            opacity: 1;
+            animation: kenburns-retro 10s ease-in-out forwards, film-flicker 0.15s infinite alternate;
+        }
+        #shortfilm-caption {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 25;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2em;
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow: 1px 1px 4px #000;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            text-align: center;
+        }
+        #shortfilm-caption.visible { opacity: 1; }
+
+        /* Pantalla Final */
+        #final-screen { background-color: #0c0c1a; }
+        #final-screen h1 {
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            color: #c0a062;
+            font-size: 6em;
+            margin-top: 30px;
+        }
+        #final-message {
+            opacity: 0;
+            animation: fadeIn 2s forwards 1.5s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #final-message h2 {
+            font-size: 3em;
+            color: #aaa;
+            font-family: 'Garamond', serif;
+            font-weight: normal;
+        }
+        #final-message p {
+            font-size: 2em;
+            color: #e0e0e0;
+            margin: 20px 0;
+        }
+        .menu-button {
+            font-family: 'Garamond', serif;
+            font-size: 1.5em;
+            background: transparent;
+            border: 2px solid #c0a062;
+            color: #c0a062;
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 450px;
+        }
+        .menu-button:hover { background: #c0a062; color: #1a1a1a; }
+
+        /* Animaciones */
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes twinkle { 50% { filter: drop-shadow(0 0 14px #FFF) drop-shadow(0 0 24px #FFF); } }
+        @keyframes twinkle-bg { from { opacity: 0.1; } to { opacity: 0.5; } }
+        @keyframes drawLine { to { stroke-dashoffset: 0; } }
+        @keyframes kenburns-retro {
+            0% { transform: scale(1.05) translate(0, 0); }
+            100% { transform: scale(1.2) translate(3%, -2%); }
+        }
+        @keyframes film-grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            20% { transform: translate(1%, 1%); }
+            30% { transform: translate(-1%, 1%); }
+            40% { transform: translate(1%, -1%); }
+            50% { transform: translate(-1%, 0); }
+            60% { transform: translate(1%, 0); }
+            70% { transform: translate(0, 1%); }
+            80% { transform: translate(0, -1%); }
+            90% { transform: translate(-1%, -1%); }
+        }
+        @keyframes film-flicker {
+            0% { opacity: 1; }
+            50% { opacity: 0.95; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Reproductor de Música -->
+    <div id="music-player">
+        <div class="play-icon">▶</div>
+        <div class="song-info">Tu Canción Especial</div>
+    </div>
+
+    <!-- PANTALLA DE CUENTA REGRESIVA -->
+    <div id="countdown-screen" class="screen visible on-top">
+        <div id="countdown-config">
+            <!-- CONFIGURACIÓN: Para cambiar la fecha, modifica la línea 639 del JavaScript -->
+            <!-- Ejemplo: const targetDate = new Date('2025-10-05T00:00:00'); -->
+        </div>
+        <div style="position: absolute; inset: 0; overflow: hidden;">
+            <div id="countdown-stars"></div>
+        </div>
+        <div id="countdown-container">
+            <div class="countdown-box">
+                <div class="countdown-number" id="days">0</div>
+                <div class="countdown-label">Días</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-number" id="hours">0</div>
+                <div class="countdown-label">Horas</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-number" id="minutes">0</div>
+                <div class="countdown-label">Minutos</div>
+            </div>
+            <div class="countdown-box">
+                <div class="countdown-number" id="seconds">10</div>
+                <div class="countdown-label">Segundos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE BIENVENIDA -->
+    <div id="start-screen" class="screen hidden">
+        <h1>Feliz Aniversario</h1>
+        <p>Toca para explorar nuestros recuerdos</p>
+    </div>
+
+    <!-- PANTALLA DE UNIVERSO/MUNDOS -->
+    <div id="universe-screen" class="screen hidden">
+        <div style="position: absolute; inset: 0; overflow: hidden;">
+            <div id="universe-stars"></div>
+        </div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div style="width: 6px; height: 6px; background: #c0a062; border-radius: 50%; box-shadow: 0 0 20px rgba(192, 160, 98, 0.8); animation: pulse 2s infinite;"></div>
+        </div>
+        <div class="world" data-world="constellation" style="left: 50%; top: 15%; border-color: #5eb3f6; background: rgba(94, 179, 246, 0.2); box-shadow: 0 0 30px rgba(94, 179, 246, 0.4);">
+            <div class="world-icon">❤️</div>
+            <div class="world-label">Constelación de Recuerdos</div>
+        </div>
+        <div class="world" data-world="shortfilm" style="left: 75%; top: 35%; border-color: #e691c3; background: rgba(230, 145, 195, 0.2); box-shadow: 0 0 30px rgba(230, 145, 195, 0.4);">
+            <div class="world-icon">🎬</div>
+            <div class="world-label">Nuestro Cortometraje</div>
+        </div>
+        <div class="world" data-world="message" style="left: 75%; top: 65%; border-color: #7ec99c; background: rgba(126, 201, 156, 0.2); box-shadow: 0 0 30px rgba(126, 201, 156, 0.4);">
+            <div class="world-icon">💌</div>
+            <div class="world-label">Un Mensaje Para Ti</div>
+        </div>
+        <div class="world" data-world="trip" style="left: 25%; top: 50%; border-color: #f6c85e; background: rgba(246, 200, 94, 0.2); box-shadow: 0 0 30px rgba(246, 200, 94, 0.4);">
+            <div class="world-icon">🎢</div>
+            <div class="world-label">Vámonos de Viaje</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE CONSTELACIÓN -->
+    <div id="constellation-screen" class="screen hidden">
+        <div class="back-button" data-target="universe-screen">Volver</div>
+        <div id="constellation-container"></div>
+        <svg id="constellation-svg"></svg>
+        <div id="memory-caption"></div>
+    </div>
+
+    <!-- PANTALLA DE MENSAJE -->
+    <div id="message-screen" class="screen hidden">
+        <div class="back-button" data-target="universe-screen">Volver</div>
+        <p id="letter">Mi amor,
+
+Cada día a tu lado es mi recuerdo favorito.
+
+Gracias por este increíble viaje.
+
+Con todo mi amor,
+Tu persona favorita.</p>
+    </div>
+
+    <!-- PANTALLA DE VIAJE AL PARQUE DEL CAFÉ -->
+    <div id="trip-screen" class="screen hidden">
+        <div class="back-button" data-target="universe-screen">Volver</div>
+        <div class="ticket-container">
+            <div class="ticket-content">
+                <div class="ticket-header">¡Nos Vamos de Aventura!</div>
+                <div class="trip-emoji">🎢☕✨</div>
+                <div class="trip-details">
+                    Tu regalo especial: <span class="trip-highlight">Un viaje al Parque del Café</span>
+                    <br><br>
+                    Prepárate para vivir juntos una experiencia inolvidable llena de:
+                    <br><br>
+                    🎡 Emociones en cada atracción<br>
+                    ☕ El mejor café colombiano<br>
+                    🌄 Paisajes increíbles del Eje Cafetero<br>
+                    📸 Recuerdos que durarán para siempre<br>
+                    <br>
+                    <span class="trip-highlight">¡Será nuestra próxima gran aventura!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE CORTOMETRAJE -->
+    <div id="shortfilm-screen" class="screen hidden">
+        <div class="back-button" data-target="universe-screen">Volver</div>
+        <div class="film-roll-container">
+            <div id="shortfilm-container"></div>
+        </div>
+        <div id="shortfilm-caption"></div>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="final-screen" class="screen hidden on-top">
+        <div id="final-message">
+            <h2>Nuestra constelación está completa...</h2>
+            <p>...un corazón dibujado en las estrellas.</p>
+            <h1>Te amo</h1>
+            <button class="menu-button" id="view-constellation-button" style="margin-top: 40px;">Ver la Constelación de Nuevo</button>
+            <button class="menu-button" id="back-to-universe-button">Volver al Universo</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let constellationTimer, shortfilmTimer, countdownInterval;
+        let activeScreenId = 'countdown-screen';
+        let visitedWorlds = new Set();
+
+        // **CONFIGURACIÓN DE FECHA**
+        // Para cambiar la fecha objetivo, modifica la siguiente línea:
+        // Ejemplo para 5 de octubre de 2025: new Date('2025-10-05T00:00:00')
+        const targetDate = new Date('2025-10-05T00:00:00');
+
+        const memories = [
+            { caption: 'El primer hola...' },
+            { caption: 'Esa primera cita...' },
+            { caption: 'Nuestro primer viaje...' },
+            { caption: 'Las risas compartidas...' },
+            { caption: 'El apoyo incondicional...' },
+            { caption: 'Ese secreto nuestro...' },
+            { caption: 'La noche que bailamos...' },
+            { caption: 'Cuando supimos que era para siempre...' },
+            { caption: 'Nuestros sueños juntos...' },
+            { caption: 'Superando obstáculos...' },
+            { caption: 'Cada pequeño detalle...' },
+            { caption: 'Y el comienzo de todo lo demás.' }
+        ];
+
+        const shortfilmSlides = [
+            { img: 'https://picsum.photos/seed/love1/1920/1080', caption: 'Donde todo comenzó...' },
+            { img: 'https://picsum.photos/seed/love2/1920/1080', caption: 'Aventuras inolvidables.' },
+            { img: 'https://picsum.photos/seed/love3/1920/1080', caption: 'Momentos de paz.' },
+            { img: 'https://picsum.photos/seed/love4/1920/1080', caption: 'Risas que resuenan.' },
+            { img: 'https://picsum.photos/seed/love5/1920/1080', caption: 'Mirando hacia el futuro, juntos.' }
+        ];
+
+        // Crear estrellas de fondo para countdown
+        const countdownStarsContainer = document.getElementById('countdown-stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.style.position = 'absolute';
+            star.style.background = 'white';
+            star.style.borderRadius = '50%';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            const size = Math.random() * 2 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.animation = `twinkle-bg ${Math.random() * 2 + 2}s infinite ease-in-out alternate`;
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.opacity = Math.random() * 0.5 + 0.3;
+            countdownStarsContainer.appendChild(star);
+        }
+
+        // Función de cuenta regresiva
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('days').textContent = '0';
+                document.getElementById('hours').textContent = '0';
+                document.getElementById('minutes').textContent = '0';
+                document.getElementById('seconds').textContent = '0';
+                setTimeout(() => {
+                    showScreen('start-screen');
+                }, 500);
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+        }
+
+        // Iniciar cuenta regresiva
+        updateCountdown();
+        countdownInterval = setInterval(updateCountdown, 1000);
+
+        // Click en pantalla de inicio
+        document.getElementById('start-screen').addEventListener('click', () => {
+            document.getElementById('music-player').style.display = 'flex';
+            showScreen('universe-screen');
+        });
+
+        // Crear estrellas de fondo para universo
+        const universeStarsContainer = document.getElementById('universe-stars');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.style.position = 'absolute';
+            star.style.background = 'white';
+            star.style.borderRadius = '50%';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            const size = Math.random() * 2 + 0.5;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.animation = `twinkle-bg ${Math.random() * 3 + 2}s infinite ease-in-out alternate`;
+            star.style.animationDelay = Math.random() * 5 + 's';
+            star.style.opacity = Math.random() * 0.4 + 0.2;
+            universeStarsContainer.appendChild(star);
+        }
+
+        // Navegación por mundos
+        document.querySelectorAll('.world').forEach(world => {
+            world.addEventListener('click', () => {
+                const worldId = world.getAttribute('data-world');
+                visitedWorlds.add(worldId);
+                showScreen(worldId + '-screen');
+            });
+        });
+
+        // Botones de volver - BUG FIX: Removido la condición que causaba ir siempre a final-screen
+        document.querySelectorAll('.back-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const target = button.getAttribute('data-target');
+                showScreen(target);
+            });
+        });
+
+        // Botones pantalla final
+        document.getElementById('view-constellation-button').addEventListener('click', () => {
+            showScreen('constellation-screen', { isReview: true });
+        });
+        document.getElementById('back-to-universe-button').addEventListener('click', () => {
+            showScreen('universe-screen');
+        });
+
+        function showScreen(targetId, options = {}) {
+            const currentScreen = document.getElementById(activeScreenId);
+            const targetScreen = document.getElementById(targetId);
+            
+            if (currentScreen && currentScreen.id !== targetId) {
+                currentScreen.classList.remove('visible');
+                setTimeout(() => {
+                    currentScreen.classList.add('hidden');
+                    currentScreen.classList.remove('on-top');
+                }, 1000);
+            }
+
+            targetScreen.classList.remove('hidden');
+            if (targetId === 'final-screen' || targetId === 'start-screen' || targetId === 'countdown-screen') {
+                targetScreen.classList.add('on-top');
+            }
+            setTimeout(() => targetScreen.classList.add('visible'), 50);
+            
+            activeScreenId = targetId;
+            stopConstellation();
+            stopShortfilmAnimation();
+
+            if (targetId === 'constellation-screen') {
+                if (options.isReview) {
+                    drawCompletedConstellation();
+                } else {
+                    startConstellationAnimation();
+                }
+            } else if (targetId === 'shortfilm-screen') {
+                startShortfilmAnimation();
+            }
+        }
+
+        function getStarCoords() {
+            const svg = document.getElementById('constellation-svg');
+            const { width, height } = svg.getBoundingClientRect();
+            const heartScale = Math.min(width, height) * 0.4;
+            const offsetX = width / 2;
+            const offsetY = height / 2;
+
+            return Array.from({length: 12}, (_, i) => {
+                const t = 2 * Math.PI * i / 11;
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                return { x: offsetX + x * (heartScale / 25), y: offsetY - y * (heartScale / 25) };
+            });
+        }
+
+        function generateBackgroundStars(container, count) {
+            const bgContainer = document.getElementById('constellation-container');
+            bgContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'background-star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                const size = Math.random() * 2 + 0.5;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                star.style.animationDuration = `${Math.random() * 5 + 3}s`;
+                bgContainer.appendChild(star);
+            }
+        }
+
+        function drawCompletedConstellation() {
+            const screen = document.getElementById('constellation-screen');
+            const svg = screen.querySelector('#constellation-svg');
+            const captionEl = screen.querySelector('#memory-caption');
+            
+            svg.innerHTML = '';
+            captionEl.textContent = '';
+            captionEl.classList.remove('visible');
+            
+            generateBackgroundStars(document.getElementById('constellation-container'), 150);
+            const starCoords = getStarCoords();
+            
+            starCoords.forEach((coord, i) => {
+                const star = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                star.setAttribute('class', 'star visible');
+                star.setAttribute('cx', coord.x);
+                star.setAttribute('cy', coord.y);
+                star.setAttribute('r', 6);
+                svg.appendChild(star);
+
+                const nextCoord = starCoords[(i + 1) % 11];
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'constellation-line');
+                line.setAttribute('x1', coord.x);
+                line.setAttribute('y1', coord.y);
+                line.setAttribute('x2', nextCoord.x);
+                line.setAttribute('y2', nextCoord.y);
+                line.style.animation = 'none';
+                line.style.strokeDashoffset = '0';
+                svg.insertBefore(line, svg.firstChild);
+            });
+        }
+
+        function startConstellationAnimation() {
+            const screen = document.getElementById('constellation-screen');
+            const svg = screen.querySelector('#constellation-svg');
+            const captionEl = screen.querySelector('#memory-caption');
+            svg.innerHTML = '';
+            captionEl.textContent = '';
+            captionEl.classList.remove('visible');
+            
+            generateBackgroundStars(document.getElementById('constellation-container'), 150);
+            const starCoords = getStarCoords();
+            let currentIndex = 0;
+
+            function playNext() {
+                if (currentIndex >= memories.length) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('class', 'constellation-line');
+                    line.setAttribute('x1', starCoords[memories.length - 1].x);
+                    line.setAttribute('y1', starCoords[memories.length - 1].y);
+                    line.setAttribute('x2', starCoords[0].x);
+                    line.setAttribute('y2', starCoords[0].y);
+                    svg.insertBefore(line, svg.firstChild);
+
+                    setTimeout(() => showScreen('final-screen'), 3000);
+                    return;
+                }
+                
+                captionEl.textContent = memories[currentIndex].caption;
+                captionEl.classList.add('visible');
+                
+                const star = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                star.setAttribute('class', 'star');
+                star.setAttribute('cx', starCoords[currentIndex].x);
+                star.setAttribute('cy', starCoords[currentIndex].y);
+                star.setAttribute('r', 6);
+                svg.appendChild(star);
+                setTimeout(() => star.classList.add('visible'), 50);
+                
+                if (currentIndex > 0) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('class', 'constellation-line');
+                    line.setAttribute('x1', starCoords[currentIndex-1].x);
+                    line.setAttribute('y1', starCoords[currentIndex-1].y);
+                    line.setAttribute('x2', starCoords[currentIndex].x);
+                    line.setAttribute('y2', starCoords[currentIndex].y);
+                    svg.insertBefore(line, svg.firstChild);
+                }
+
+                const captionVisibleTime = 3000;
+                const fadeOutTime = 1000;
+                
+                constellationTimer = setTimeout(() => {
+                    captionEl.classList.remove('visible');
+                    constellationTimer = setTimeout(() => {
+                        currentIndex++;
+                        playNext();
+                    }, fadeOutTime);
+                }, captionVisibleTime);
+            }
+            playNext();
+        }
+
+        function stopConstellation() {
+            clearTimeout(constellationTimer);
+            const container = document.getElementById('constellation-container');
+            if(container) container.innerHTML = '';
+            const svg = document.getElementById('constellation-svg');
+            if (svg) svg.innerHTML = '';
+            const captionEl = document.getElementById('memory-caption');
+            if (captionEl) {
+                captionEl.textContent = '';
+                captionEl.classList.remove('visible');
+            }
+        }
+
+        function startShortfilmAnimation() {
+            const container = document.getElementById('shortfilm-container');
+            const captionEl = document.getElementById('shortfilm-caption');
+            if (!container || !captionEl) return;
+
+            let currentIndex = 0;
+            let currentSlide = null;
+
+            function showSlide() {
+                if (currentIndex >= shortfilmSlides.length) {
+                    currentIndex = 0;
+                }
+
+                const slideData = shortfilmSlides[currentIndex];
+                const slide = document.createElement('div');
+                slide.className = 'shortfilm-slide';
+                slide.style.backgroundImage = `url(${slideData.img})`;
+                container.appendChild(slide);
+                
+                setTimeout(() => {
+                    slide.classList.add('visible');
+                    captionEl.textContent = slideData.caption;
+                    captionEl.classList.add('visible');
+                }, 100);
+
+                if (currentSlide) {
+                    currentSlide.remove();
+                }
+
+                currentSlide = slide;
+                currentIndex++;
+
+                shortfilmTimer = setTimeout(() => {
+                    captionEl.classList.remove('visible');
+                    setTimeout(showSlide, 500);
+                }, 8000);
+            }
+
+            showSlide();
+        }
+
+        function stopShortfilmAnimation() {
+            clearTimeout(shortfilmTimer);
+            const container = document.getElementById('shortfilm-container');
+            if (container) container.innerHTML = '';
+            const captionEl = document.getElementById('shortfilm-caption');
+            if (captionEl) {
+                captionEl.textContent = '';
+                captionEl.classList.remove('visible');
+            }
+        }
+    });
+    </script>
+</body>
+</html>
